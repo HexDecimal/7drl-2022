@@ -1,22 +1,23 @@
 """Handle the loading and initialization of game sessions."""
 from __future__ import annotations
 
-from typing import Optional
 import copy
 import lzma
 import pickle
+import random
 import traceback
+from typing import Optional
 
-from PIL import Image  # type: ignore
 import tcod
+from PIL import Image  # type: ignore
 
-from game.input_handlers import BaseEventHandler
 import game.color
 import game.engine
 import game.entity_factories
 import game.game_map
 import game.input_handlers
 import game.procgen
+from game.input_handlers import BaseEventHandler
 
 # Load the background image.  Pillow returns an object convertable into a NumPy array.
 background_image = Image.open("data/menu_background.png")
@@ -34,10 +35,7 @@ def new_game() -> game.engine.Engine:
     max_monsters_per_room = 2
     max_items_per_room = 2
 
-    player = copy.deepcopy(game.entity_factories.player)
-
-    engine = game.engine.Engine(player=player)
-
+    engine = game.engine.Engine()
     engine.game_world = game.game_map.GameWorld(
         engine=engine,
         max_rooms=max_rooms,
@@ -48,8 +46,9 @@ def new_game() -> game.engine.Engine:
         max_monsters_per_room=max_monsters_per_room,
         max_items_per_room=max_items_per_room,
     )
-
+    engine.rng = random.Random()
     engine.game_world.generate_floor()
+    engine.player = game.entity_factories.player.spawn(engine.game_map, *engine.game_map.enter_xy)
     engine.update_fov()
 
     engine.message_log.add_message("Hello and welcome, adventurer, to yet another dungeon!", game.color.welcome_text)
