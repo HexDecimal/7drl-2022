@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from components.base_component import BaseComponent
-
-if TYPE_CHECKING:
-    from entity import Actor
+import game.entity
+from game.components.base_component import BaseComponent
 
 
 class Level(BaseComponent):
-    parent: Actor
+    parent: game.entity.Actor
 
     def __init__(
         self,

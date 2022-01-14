@@ -1,42 +1,39 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Tuple, Type, TypeVar, Union
 import copy
 import math
+from typing import Optional, Tuple, Type, TypeVar, Union
 
-from render_order import RenderOrder
-
-if TYPE_CHECKING:
-    from components.ai import BaseAI
-    from components.consumable import Consumable
-    from components.equipment import Equipment
-    from components.equippable import Equippable
-    from components.fighter import Fighter
-    from components.inventory import Inventory
-    from components.level import Level
-    from game_map import GameMap
+import game.components.ai
+import game.components.consumable
+import game.components.equipment
+import game.components.fighter
+import game.components.inventory
+import game.components.level
+import game.game_map
+import game.render_order
 
 T = TypeVar("T", bound="Entity")
 
 
 class Entity:
-    """
-    A generic object to represent players, enemies, items, etc.
-    """
-
-    parent: Union[GameMap, Inventory]
+    """A generic object to represent players, enemies, items, etc."""
 
     def __init__(
         self,
-        parent: Optional[GameMap] = None,
+        parent: Optional[Union[game.game_map.GameMap, game.components.inventory.Inventory]] = None,
         x: int = 0,
         y: int = 0,
         char: str = "?",
         color: Tuple[int, int, int] = (255, 255, 255),
         name: str = "<Unnamed>",
         blocks_movement: bool = False,
-        render_order: RenderOrder = RenderOrder.CORPSE,
+        render_order: game.render_order.RenderOrder = game.render_order.RenderOrder.CORPSE,
     ):
+        self.parent = parent
+        if isinstance(parent, game.game_map.GameMap):
+            parent.entities.add(self)
+
         self.x = x
         self.y = y
         self.char = char
@@ -44,16 +41,13 @@ class Entity:
         self.name = name
         self.blocks_movement = blocks_movement
         self.render_order = render_order
-        if parent:
-            # If parent isn't provided now then it will be set later.
-            self.parent = parent
-            parent.entities.add(self)
 
     @property
-    def gamemap(self) -> GameMap:
+    def gamemap(self) -> game.game_map.GameMap:
+        assert self.parent
         return self.parent.gamemap
 
-    def spawn(self: T, gamemap: GameMap, x: int, y: int) -> T:
+    def spawn(self: T, gamemap: game.game_map.GameMap, x: int, y: int) -> T:
         """Spawn a copy of this instance at the given location."""
         clone = copy.deepcopy(self)
         clone.x = x
@@ -62,7 +56,7 @@ class Entity:
         gamemap.entities.add(clone)
         return clone
 
-    def place(self, x: int, y: int, gamemap: Optional[GameMap] = None) -> None:
+    def place(self, x: int, y: int, gamemap: Optional[game.game_map.GameMap] = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
         self.x = x
         self.y = y
@@ -88,41 +82,45 @@ class Entity:
 class Actor(Entity):
     def __init__(
         self,
-        *,
+        gamemap: Optional[game.game_map.GameMap] = None,
         x: int = 0,
         y: int = 0,
         char: str = "?",
         color: Tuple[int, int, int] = (255, 255, 255),
         name: str = "<Unnamed>",
-        ai_cls: Type[BaseAI],
-        equipment: Equipment,
-        fighter: Fighter,
-        inventory: Inventory,
-        level: Level,
+        *,
+        ai_cls: Type[game.components.ai.BaseAI],
+        equipment: game.components.equipment.Equipment,
+        fighter: game.components.fighter.Fighter,
+        inventory: Optional[game.components.inventory.Inventory] = None,
+        level: game.components.level.Level,
     ):
         super().__init__(
+            gamemap,
             x=x,
             y=y,
             char=char,
             color=color,
             name=name,
             blocks_movement=True,
-            render_order=RenderOrder.ACTOR,
+            render_order=game.render_order.RenderOrder.ACTOR,
         )
 
-        self.ai: Optional[BaseAI] = ai_cls(self)
+        self.ai: Optional[game.components.ai.BaseAI] = ai_cls(self)
 
-        self.equipment: Equipment = equipment
-        self.equipment.parent = self
+        self.equipment: game.components.equipment.Equipment = equipment
+        self.equipment.entity = self
 
         self.fighter = fighter
-        self.fighter.parent = self
+        self.fighter.entity = self
 
+        if inventory is None:
+            inventory = game.components.inventory.Inventory(0)
         self.inventory = inventory
-        self.inventory.parent = self
+        self.inventory.entity = self
 
         self.level = level
-        self.level.parent = self
+        self.level.entity = self
 
     @property
     def is_alive(self) -> bool:
@@ -133,24 +131,28 @@ class Actor(Entity):
 class Item(Entity):
     def __init__(
         self,
-        *,
+        parent: Optional[Union[game.game_map.GameMap, game.components.inventory.Inventory]] = None,
         x: int = 0,
         y: int = 0,
+        *,
         char: str = "?",
         color: Tuple[int, int, int] = (255, 255, 255),
         name: str = "<Unnamed>",
-        consumable: Optional[Consumable] = None,
-        equippable: Optional[Equippable] = None,
+        consumable: Optional[game.components.consumable.Consumable] = None,
+        equippable: Optional[game.components.equippable.Equippable] = None,
     ):
         super().__init__(
+            parent,
             x=x,
             y=y,
             char=char,
             color=color,
             name=name,
             blocks_movement=False,
-            render_order=RenderOrder.ITEM,
+            render_order=game.render_order.RenderOrder.ITEM,
         )
+        if isinstance(parent, game.components.inventory.Inventory):
+            parent.items.append(self)
 
         self.consumable = consumable
 
@@ -160,4 +162,4 @@ class Item(Entity):
         self.equippable = equippable
 
         if self.equippable:
-            self.equippable.parent = self
+            self.equippable.entity = self
