@@ -51,8 +51,8 @@ def new_game() -> game.engine.Engine:
     dagger = copy.deepcopy(game.entity_factories.dagger)
     leather_armor = copy.deepcopy(game.entity_factories.leather_armor)
 
-    dagger.entity = engine.player.inventory
-    leather_armor.entity = engine.player.inventory
+    dagger.parent = engine.player.inventory
+    leather_armor.parent = engine.player.inventory
 
     engine.player.inventory.items.append(dagger)
     engine.player.equipment.toggle_equip(dagger, add_message=False)
