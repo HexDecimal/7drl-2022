@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import tcod
+from numpy.typing import NDArray
 
 import game.engine
 import game.game_map
 import game.render_functions
 
-tile_graphics = np.array(
+tile_graphics: NDArray[Any] = np.array(
     [
         (ord("#"), (0x80, 0x80, 0x80), (0x40, 0x40, 0x40)),  # wall
         (ord("."), (0x40, 0x40, 0x40), (0x18, 0x18, 0x18)),  # floor
@@ -17,7 +20,7 @@ tile_graphics = np.array(
 )
 
 # SHROUD represents unexplored, unseen tiles
-SHROUD = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=tcod.console.rgb_graphic)
+SHROUD: NDArray[Any] = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=tcod.console.rgb_graphic)
 
 
 def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
