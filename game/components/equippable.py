@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import game.entity
 from equipment_types import EquipmentType
 from game.components.base_component import BaseComponent
 

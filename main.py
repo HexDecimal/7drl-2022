@@ -56,7 +56,7 @@ def main() -> None:
         except SystemExit:  # Save and quit.
             save_game(event_handler, "savegame.sav")
             raise
-        except:  # Save on errors.
+        except BaseException:  # Save on any other error.
             save_game(event_handler, "savegame.sav")
             raise
 
