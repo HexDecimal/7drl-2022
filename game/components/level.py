@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from game.components.base_component import BaseComponent
 import game.entity
+from game.components.base_component import BaseComponent
 
 
 class Level(BaseComponent):

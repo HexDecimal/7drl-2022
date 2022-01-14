@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import Optional
 
+import game.entity
 from equipment_types import EquipmentType
 from game.components.base_component import BaseComponent
-import game.entity
 
 
 class Equipment(BaseComponent):
-    parent: game.entity.Actor
-
     def __init__(self, weapon: Optional[game.entity.Item] = None, armor: Optional[game.entity.Item] = None):
         self.weapon = weapon
         self.armor = armor
