@@ -2,18 +2,22 @@ from __future__ import annotations
 
 from typing import Optional
 
-from game.components.base_component import BaseComponent
 import game.actions
 import game.color
 import game.components.ai
 import game.components.inventory
+import game.engine
 import game.entity
 import game.exceptions
 import game.input_handlers
 
 
-class Consumable(BaseComponent):
+class Consumable:
     parent: game.entity.Item
+
+    @property
+    def engine(self) -> game.engine.Engine:
+        return self.parent.gamemap.engine
 
     def get_action(self, consumer: game.entity.Actor) -> Optional[game.input_handlers.ActionOrHandler]:
         """Try to return the action for this item."""
@@ -38,7 +42,7 @@ class ConfusionConsumable(Consumable):
     def __init__(self, number_of_turns: int):
         self.number_of_turns = number_of_turns
 
-    def get_action(self, consumer: game.entity.Actor) -> game.input_handlers.SingleRangedAttackHandler:
+    def get_action(self, consumer: game.entity.Actor) -> Optional[game.input_handlers.ActionOrHandler]:
         self.engine.message_log.add_message("Select a target location.", game.color.needs_target)
         return game.input_handlers.SingleRangedAttackHandler(
             self.engine,
@@ -73,7 +77,7 @@ class FireballDamageConsumable(Consumable):
         self.damage = damage
         self.radius = radius
 
-    def get_action(self, consumer: game.entity.Actor) -> game.input_handlers.AreaRangedAttackHandler:
+    def get_action(self, consumer: game.entity.Actor) -> Optional[game.input_handlers.ActionOrHandler]:
         self.engine.message_log.add_message("Select a target location.", game.color.needs_target)
         return game.input_handlers.AreaRangedAttackHandler(
             self.engine,
@@ -88,7 +92,9 @@ class FireballDamageConsumable(Consumable):
             raise game.exceptions.Impossible("You cannot target an area that you cannot see.")
 
         targets_hit = False
-        for actor in self.engine.game_map.actors:
+        for actor in self.engine.game_map.entities:
+            if not isinstance(actor, game.entity.Actor):
+                continue
             if actor.distance(*target_xy) <= self.radius:
                 self.engine.message_log.add_message(
                     f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!"
@@ -110,7 +116,7 @@ class HealingConsumable(Consumable):
         amount_recovered = consumer.fighter.heal(self.amount)
 
         if amount_recovered > 0:
-            self.engine.message_log.add_message(
+            self.parent.gamemap.engine.message_log.add_message(
                 f"You consume the {self.parent.name}, and recover {amount_recovered} HP!",
                 game.color.health_recovered,
             )
@@ -129,7 +135,9 @@ class LightningDamageConsumable(Consumable):
         target = None
         closest_distance = self.maximum_range + 1.0
 
-        for actor in self.engine.game_map.actors:
+        for actor in self.engine.game_map.entities:
+            if not isinstance(actor, game.entity.Actor):
+                continue
             if actor is not consumer and self.parent.gamemap.visible[actor.x, actor.y]:
                 distance = consumer.distance(actor.x, actor.y)
 

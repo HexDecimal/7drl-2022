@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from typing import Dict, Iterator, List, Tuple
 import random
+from typing import Dict, Iterator, List, Tuple
 
 import tcod
 
+import game.components.consumable
 import game.engine
 import game.entity
 import game.entity_factories
 import game.game_map
-import game.tiles
+
+WALL = 0
+FLOOR = 1
+DOWN_STAIRS = 2
 
 max_items_by_floor = [
     (1, 1),
@@ -83,10 +87,8 @@ class RectangularRoom:
 
     @property
     def center(self) -> Tuple[int, int]:
-        center_x = int((self.x1 + self.x2) / 2)
-        center_y = int((self.y1 + self.y2) / 2)
-
-        return center_x, center_y
+        """Return the center coordinates of the room."""
+        return (self.x1 + self.x2) // 2, (self.y1 + self.y2) // 2
 
     @property
     def inner(self) -> Tuple[slice, slice]:
@@ -109,20 +111,24 @@ def place_entities(room: RectangularRoom, dungeon: game.game_map.GameMap, floor_
         x = random.randint(room.x1 + 1, room.x2 - 1)
         y = random.randint(room.y1 + 1, room.y2 - 1)
 
-        if not any(entity.x == x and entity.y == y for entity in dungeon.entities):
-            entity.spawn(dungeon, x, y)
+        if dungeon.get_blocking_entity_at(x, y):
+            continue
+        if (x, y) == dungeon.enter_xy:
+            continue
+
+        entity.spawn(dungeon, x, y)
 
 
-def tunnel_between(start: Tuple[int, int], end: Tuple[int, int]) -> Iterator[Tuple[int, int]]:
+def tunnel_between(
+    engine: game.engine.Engine, start: Tuple[int, int], end: Tuple[int, int]
+) -> Iterator[Tuple[int, int]]:
     """Return an L-shaped tunnel between these two points."""
     x1, y1 = start
     x2, y2 = end
-    if random.random() < 0.5:  # 50% chance.
-        # Move horizontally, then vertically.
-        corner_x, corner_y = x2, y1
+    if engine.rng.random() < 0.5:  # 50% chance.
+        corner_x, corner_y = x2, y1  # Move horizontally, then vertically.
     else:
-        # Move vertically, then horizontally.
-        corner_x, corner_y = x1, y2
+        corner_x, corner_y = x1, y2  # Move vertically, then horizontally.
 
     # Generate the coordinates for this tunnel.
     for x, y in tcod.los.bresenham((x1, y1), (corner_x, corner_y)).tolist():
@@ -140,21 +146,20 @@ def generate_dungeon(
     engine: game.engine.Engine,
 ) -> game.game_map.GameMap:
     """Generate a new dungeon map."""
-    player = engine.player
-    dungeon = game.game_map.GameMap(engine, map_width, map_height, entities=[player])
+    dungeon = game.game_map.GameMap(engine, map_width, map_height)
 
     rooms: List[RectangularRoom] = []
 
     center_of_last_room = (0, 0)
 
     for _ in range(max_rooms):
-        room_width = random.randint(room_min_size, room_max_size)
-        room_height = random.randint(room_min_size, room_max_size)
+        room_width = engine.rng.randint(room_min_size, room_max_size)
+        room_height = engine.rng.randint(room_min_size, room_max_size)
 
-        x = random.randint(0, dungeon.width - room_width - 1)
-        y = random.randint(0, dungeon.height - room_height - 1)
+        x = engine.rng.randint(0, dungeon.width - room_width - 1)
+        y = engine.rng.randint(0, dungeon.height - room_height - 1)
 
-        # "RectangularRoom" class makes rectangles easier to work with
+        # "RectangularRoom" class makes rectangles easier to work with.
         new_room = RectangularRoom(x, y, room_width, room_height)
 
         # Run through the other rooms and see if they intersect with this one.
@@ -163,21 +168,21 @@ def generate_dungeon(
         # If there are no intersections then the room is valid.
 
         # Dig out this rooms inner area.
-        dungeon.tiles[new_room.inner] = game.tiles.floor
+        dungeon.tiles[new_room.inner] = FLOOR
 
         if len(rooms) == 0:
             # The first room, where the player starts.
-            player.place(*new_room.center, dungeon)
+            dungeon.enter_xy = new_room.center
         else:  # All rooms after the first.
             # Dig out a tunnel between this room and the previous one.
-            for x, y in tunnel_between(rooms[-1].center, new_room.center):
-                dungeon.tiles[x, y] = game.tiles.floor
+            for x, y in tunnel_between(engine, rooms[-1].center, new_room.center):
+                dungeon.tiles[x, y] = FLOOR
 
             center_of_last_room = new_room.center
 
         place_entities(new_room, dungeon, engine.game_world.current_floor)
 
-        dungeon.tiles[center_of_last_room] = game.tiles.down_stairs
+        dungeon.tiles[center_of_last_room] = DOWN_STAIRS
         dungeon.downstairs_location = center_of_last_room
 
         # Finally, append the new room to the list.
