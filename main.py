@@ -11,9 +11,10 @@ import game.exceptions
 import game.input_handlers
 import game.procgen
 import game.setup_game
+import game.typing
 
 
-def save_game(handler: game.input_handlers.BaseEventHandler, filename: str) -> None:
+def save_game(handler: game.typing.EventHandler, filename: str) -> None:
     """If the current event handler has an active Engine then save it."""
     if isinstance(handler, game.input_handlers.EventHandler):
         handler.engine.save_as(filename)
@@ -26,7 +27,7 @@ def main() -> None:
 
     tileset = tcod.tileset.load_tilesheet("data/dejavu16x16_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
 
-    event_handler: game.input_handlers.BaseEventHandler = game.setup_game.MainMenu()
+    event_handler: game.typing.EventHandler = game.setup_game.MainMenu()
 
     with tcod.context.new(
         columns=screen_width,

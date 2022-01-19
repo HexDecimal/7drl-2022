@@ -10,6 +10,7 @@ import game.engine
 import game.entity
 import game.exceptions
 import game.input_handlers
+from game.typing import ActionOrHandler
 
 
 class Consumable:
@@ -19,7 +20,7 @@ class Consumable:
     def engine(self) -> game.engine.Engine:
         return self.parent.gamemap.engine
 
-    def get_action(self, consumer: game.entity.Actor) -> Optional[game.input_handlers.ActionOrHandler]:
+    def get_action(self, consumer: game.entity.Actor) -> Optional[ActionOrHandler]:
         """Try to return the action for this item."""
         return game.actions.ItemAction(consumer, self.parent)
 
@@ -42,7 +43,7 @@ class ConfusionConsumable(Consumable):
     def __init__(self, number_of_turns: int):
         self.number_of_turns = number_of_turns
 
-    def get_action(self, consumer: game.entity.Actor) -> Optional[game.input_handlers.ActionOrHandler]:
+    def get_action(self, consumer: game.entity.Actor) -> Optional[ActionOrHandler]:
         self.engine.message_log.add_message("Select a target location.", game.color.needs_target)
         return game.input_handlers.SingleRangedAttackHandler(
             self.engine,
@@ -77,7 +78,7 @@ class FireballDamageConsumable(Consumable):
         self.damage = damage
         self.radius = radius
 
-    def get_action(self, consumer: game.entity.Actor) -> Optional[game.input_handlers.ActionOrHandler]:
+    def get_action(self, consumer: game.entity.Actor) -> Optional[ActionOrHandler]:
         self.engine.message_log.add_message("Select a target location.", game.color.needs_target)
         return game.input_handlers.AreaRangedAttackHandler(
             self.engine,

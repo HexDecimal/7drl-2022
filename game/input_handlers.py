@@ -12,6 +12,8 @@ import game.engine
 import game.entity
 import game.exceptions
 import game.rendering
+import game.typing
+from game.typing import ActionOrHandler
 
 MOVE_KEYS = {
     # Arrow keys.
@@ -54,14 +56,6 @@ CONFIRM_KEYS = {
     tcod.event.K_RETURN,
     tcod.event.K_KP_ENTER,
 }
-
-ActionOrHandler = Union["game.actions.Action", "BaseEventHandler"]
-"""An event handler return value which can trigger an action or switch active handlers.
-
-If a handler is returned then it will become the active handler for future events.
-If an action is returned it will be attempted and if it's valid then
-MainGameEventHandler will become the active handler.
-"""
 
 
 class BaseEventHandler(tcod.event.EventDispatch[ActionOrHandler]):
