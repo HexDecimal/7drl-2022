@@ -56,13 +56,13 @@ class Node:
                 return n
         return None
 
-    def get_child(self, kind: Type[TNode]) -> TNode:
+    def __getitem__(self, kind: Type[TNode]) -> TNode:
         for n in self._children:
             if isinstance(n, kind):
                 return n
         raise TypeError(f"This node has no {kind!r} instances.")
 
-    def set_child(self, kind: Type[TNode], node: Optional[TNode]) -> None:
+    def __setitem__(self, kind: Type[TNode], node: Optional[TNode]) -> None:
         self._children = {n for n in self._children if not isinstance(n, kind)}
         if node is not None:
             node.parent = self

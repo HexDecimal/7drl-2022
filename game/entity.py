@@ -105,19 +105,19 @@ class Actor(Entity):
 
     @property
     def equipment(self) -> game.components.equipment.Equipment:
-        return self.get_child(game.components.equipment.Equipment)
+        return self[game.components.equipment.Equipment]
 
     @property
     def fighter(self) -> game.components.fighter.Fighter:
-        return self.get_child(game.components.fighter.Fighter)
+        return self[game.components.fighter.Fighter]
 
     @property
     def inventory(self) -> game.components.inventory.Inventory:
-        return self.get_child(game.components.inventory.Inventory)
+        return self[game.components.inventory.Inventory]
 
     @property
     def level(self) -> game.components.level.Level:
-        return self.get_child(game.components.level.Level)
+        return self[game.components.level.Level]
 
     @property
     def is_alive(self) -> bool:

@@ -92,7 +92,7 @@ class ConfusedEnemy(BaseAI):
         if self.turns_remaining <= 0:
             self.engine.message_log.add_message(f"The {self.entity.name} is no longer confused.")
             assert self.parent
-            self.parent.set_child(BaseAI, self.previous_ai)
+            self.parent[BaseAI] = self.previous_ai
         else:
             # Pick a random direction
             direction_x, direction_y = random.choice(

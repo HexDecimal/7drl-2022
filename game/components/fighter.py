@@ -61,7 +61,7 @@ class Fighter(BaseComponent):
         self.entity.char = "%"
         self.entity.color = (191, 0, 0)
         self.entity.blocks_movement = False
-        self.entity.set_child(BaseAI, None)
+        self.entity[BaseAI] = None
         self.entity.name = f"remains of {self.entity.name}"
         self.entity.render_order = game.render_order.RenderOrder.CORPSE
 

@@ -67,14 +67,12 @@ class ConfusionConsumable(Consumable):
             f"The eyes of the {target.name} look vacant, as it starts to stumble around!",
             game.color.status_effect_applied,
         )
-        target.set_child(
-            game.components.ai.BaseAI,
-            game.components.ai.ConfusedEnemy(
-                entity=target,
-                previous_ai=target.get_child(game.components.ai.BaseAI),
-                turns_remaining=self.number_of_turns,
-            ),
+        target[game.components.ai.BaseAI] = game.components.ai.ConfusedEnemy(
+            entity=target,
+            previous_ai=target[game.components.ai.BaseAI],
+            turns_remaining=self.number_of_turns,
         )
+
         self.consume()
 
 
