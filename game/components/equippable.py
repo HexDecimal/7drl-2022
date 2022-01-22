@@ -15,6 +15,7 @@ class Equippable(BaseComponent):
         power_bonus: int = 0,
         defense_bonus: int = 0,
     ):
+        super().__init__()
         self.equipment_type = equipment_type
 
         self.power_bonus = power_bonus

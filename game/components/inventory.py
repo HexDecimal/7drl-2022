@@ -8,6 +8,7 @@ from game.components.base_component import BaseComponent
 
 class Inventory(BaseComponent):
     def __init__(self, capacity: int):
+        super().__init__()
         self.capacity = capacity
         self.items: List[game.entity.Item] = []
 
@@ -18,8 +19,8 @@ class Inventory(BaseComponent):
         self.items.remove(item)
 
         item.parent = self.gamemap
-        self.gamemap.entities.add(item)
-        item.x = self.parent.x
-        item.y = self.parent.y
+        self.gamemap.add(item)
+        item.x = self.owner.x
+        item.y = self.owner.y
 
         self.engine.message_log.add_message(f"You dropped the {item.name}.")

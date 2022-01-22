@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Optional, Tuple, Type, TypeVar, Union
+from typing import Optional, Tuple, Type, TypeVar
 
 import game.components.ai
 import game.components.consumable
@@ -13,16 +13,16 @@ import game.components.inventory
 import game.components.level
 import game.game_map
 import game.render_order
+from game.node import Node
 
 T = TypeVar("T", bound="Entity")
 
 
-class Entity:
+class Entity(Node):
     """A generic object to represent players, enemies, items, etc."""
 
     def __init__(
         self,
-        parent: Optional[Union[game.game_map.GameMap, game.components.inventory.Inventory]] = None,
         x: int = 0,
         y: int = 0,
         char: str = "?",
@@ -31,10 +31,7 @@ class Entity:
         blocks_movement: bool = False,
         render_order: game.render_order.RenderOrder = game.render_order.RenderOrder.CORPSE,
     ):
-        self.parent = parent
-        if isinstance(parent, game.game_map.GameMap):
-            parent.entities.add(self)
-
+        super().__init__()
         self.x = x
         self.y = y
         self.char = char
@@ -45,28 +42,21 @@ class Entity:
 
     @property
     def gamemap(self) -> game.game_map.GameMap:
-        assert self.parent
-        return self.parent.gamemap
+        return self.get_parent(game.game_map.GameMap)
 
     def spawn(self: T, gamemap: game.game_map.GameMap, x: int, y: int) -> T:
         """Spawn a copy of this instance at the given location."""
         clone = copy.deepcopy(self)
         clone.x = x
         clone.y = y
-        clone.parent = gamemap
-        gamemap.entities.add(clone)
+        gamemap.add(clone)
         return clone
 
     def place(self, x: int, y: int, gamemap: Optional[game.game_map.GameMap] = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
         self.x = x
         self.y = y
-        if gamemap:
-            if hasattr(self, "parent"):  # Possibly uninitialized.
-                if self.parent is self.gamemap:
-                    self.gamemap.entities.remove(self)
-            self.parent = gamemap
-            gamemap.entities.add(self)
+        self.parent = gamemap
 
     def distance(self, x: int, y: int) -> float:
         """
@@ -83,7 +73,6 @@ class Entity:
 class Actor(Entity):
     def __init__(
         self,
-        gamemap: Optional[game.game_map.GameMap] = None,
         x: int = 0,
         y: int = 0,
         char: str = "?",
@@ -97,7 +86,6 @@ class Actor(Entity):
         level: game.components.level.Level,
     ):
         super().__init__(
-            gamemap,
             x=x,
             y=y,
             char=char,
@@ -107,32 +95,40 @@ class Actor(Entity):
             render_order=game.render_order.RenderOrder.ACTOR,
         )
 
-        self.ai: Optional[game.components.ai.BaseAI] = ai_cls(self)
+        self.add(ai_cls(self))
 
-        self.equipment: game.components.equipment.Equipment = equipment
-        self.equipment.entity = self
-
-        self.fighter = fighter
-        self.fighter.entity = self
-
+        self.add(equipment)
+        self.add(fighter)
         if inventory is None:
             inventory = game.components.inventory.Inventory(0)
-        self.inventory = inventory
-        self.inventory.entity = self
+        self.add(inventory)
+        self.add(level)
 
-        self.level = level
-        self.level.entity = self
+    @property
+    def equipment(self) -> game.components.equipment.Equipment:
+        return self.get_child(game.components.equipment.Equipment)
+
+    @property
+    def fighter(self) -> game.components.fighter.Fighter:
+        return self.get_child(game.components.fighter.Fighter)
+
+    @property
+    def inventory(self) -> game.components.inventory.Inventory:
+        return self.get_child(game.components.inventory.Inventory)
+
+    @property
+    def level(self) -> game.components.level.Level:
+        return self.get_child(game.components.level.Level)
 
     @property
     def is_alive(self) -> bool:
         """Returns True as long as this actor can perform actions."""
-        return bool(self.ai)
+        return self.try_get(game.components.ai.BaseAI) is not None
 
 
 class Item(Entity):
     def __init__(
         self,
-        parent: Optional[Union[game.game_map.GameMap, game.components.inventory.Inventory]] = None,
         x: int = 0,
         y: int = 0,
         *,
@@ -143,7 +139,6 @@ class Item(Entity):
         equippable: Optional[game.components.equippable.Equippable] = None,
     ):
         super().__init__(
-            parent,
             x=x,
             y=y,
             char=char,
@@ -152,15 +147,15 @@ class Item(Entity):
             blocks_movement=False,
             render_order=game.render_order.RenderOrder.ITEM,
         )
-        if isinstance(parent, game.components.inventory.Inventory):
-            parent.items.append(self)
+        if consumable:
+            self.add(consumable)
+        if equippable:
+            self.add(equippable)
 
-        self.consumable = consumable
+    @property
+    def consumable(self) -> Optional[game.components.consumable.Consumable]:
+        return self.try_get(game.components.consumable.Consumable)
 
-        if self.consumable:
-            self.consumable.parent = self
-
-        self.equippable = equippable
-
-        if self.equippable:
-            self.equippable.entity = self
+    @property
+    def equippable(self) -> Optional[game.components.equippable.Equippable]:
+        return self.try_get(game.components.equippable.Equippable)

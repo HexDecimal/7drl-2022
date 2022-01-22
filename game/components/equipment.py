@@ -9,6 +9,7 @@ from game.components.base_component import BaseComponent
 
 class Equipment(BaseComponent):
     def __init__(self, weapon: Optional[game.entity.Item] = None, armor: Optional[game.entity.Item] = None):
+        super().__init__()
         self.weapon = weapon
         self.armor = armor
 
@@ -40,10 +41,10 @@ class Equipment(BaseComponent):
         return self.weapon == item or self.armor == item
 
     def unequip_message(self, item_name: str) -> None:
-        self.parent.gamemap.engine.message_log.add_message(f"You remove the {item_name}.")
+        self.owner.gamemap.engine.message_log.add_message(f"You remove the {item_name}.")
 
     def equip_message(self, item_name: str) -> None:
-        self.parent.gamemap.engine.message_log.add_message(f"You equip the {item_name}.")
+        self.owner.gamemap.engine.message_log.add_message(f"You equip the {item_name}.")
 
     def equip_to_slot(self, slot: str, item: game.entity.Item, add_message: bool) -> None:
         current_item = getattr(self, slot)

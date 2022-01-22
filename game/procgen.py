@@ -147,6 +147,7 @@ def generate_dungeon(
 ) -> game.game_map.GameMap:
     """Generate a new dungeon map."""
     dungeon = game.game_map.GameMap(engine, map_width, map_height)
+    engine.add(dungeon)
 
     rooms: List[RectangularRoom] = []
 

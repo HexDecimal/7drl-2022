@@ -10,10 +10,11 @@ import game.engine
 import game.entity
 import game.exceptions
 import game.input_handlers
+from game.node import Node
 from game.typing import ActionOrHandler
 
 
-class Consumable:
+class Consumable(Node):
     parent: game.entity.Item
 
     @property
@@ -41,6 +42,7 @@ class Consumable:
 
 class ConfusionConsumable(Consumable):
     def __init__(self, number_of_turns: int):
+        super().__init__()
         self.number_of_turns = number_of_turns
 
     def get_action(self, consumer: game.entity.Actor) -> Optional[ActionOrHandler]:
@@ -65,16 +67,20 @@ class ConfusionConsumable(Consumable):
             f"The eyes of the {target.name} look vacant, as it starts to stumble around!",
             game.color.status_effect_applied,
         )
-        target.ai = game.components.ai.ConfusedEnemy(
-            entity=target,
-            previous_ai=target.ai,
-            turns_remaining=self.number_of_turns,
+        target.set_child(
+            game.components.ai.BaseAI,
+            game.components.ai.ConfusedEnemy(
+                entity=target,
+                previous_ai=target.get_child(game.components.ai.BaseAI),
+                turns_remaining=self.number_of_turns,
+            ),
         )
         self.consume()
 
 
 class FireballDamageConsumable(Consumable):
     def __init__(self, damage: int, radius: int):
+        super().__init__()
         self.damage = damage
         self.radius = radius
 
@@ -110,6 +116,7 @@ class FireballDamageConsumable(Consumable):
 
 class HealingConsumable(Consumable):
     def __init__(self, amount: int):
+        super().__init__()
         self.amount = amount
 
     def activate(self, action: game.actions.ItemAction) -> None:
@@ -128,6 +135,7 @@ class HealingConsumable(Consumable):
 
 class LightningDamageConsumable(Consumable):
     def __init__(self, damage: int, maximum_range: int):
+        super().__init__()
         self.damage = damage
         self.maximum_range = maximum_range
 

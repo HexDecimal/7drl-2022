@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import abc
-from typing import Any, Protocol, Union
+from typing import Protocol, Union
 
 import tcod
 

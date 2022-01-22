@@ -1,26 +1,31 @@
 from __future__ import annotations
 
-from typing import Optional, Set
+from typing import Iterator, Optional, Set
 
 import numpy as np
 from numpy.typing import NDArray
 
 import game.engine
 import game.entity
+from game.node import Node
 
 
-class GameMap:
+class GameMap(Node):
     def __init__(self, engine: game.engine.Engine, width: int, height: int):
+        super().__init__()
         self.engine = engine
         self.width, self.height = width, height
         self.tiles: NDArray[np.uint8] = np.zeros((width, height), dtype=np.uint8, order="F")
-        self.entities: Set[game.entity.Entity] = set()
         self.enter_xy = (width // 2, height // 2)  # Entrance coordinates.
 
         self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see
         self.explored = np.full((width, height), fill_value=False, order="F")  # Tiles the player has seen before
 
         self.downstairs_location = (0, 0)
+
+    @property
+    def entities(self) -> Iterator[game.entity.Entity]:
+        yield from self.get_children(game.entity.Entity)
 
     @property
     def gamemap(self) -> GameMap:

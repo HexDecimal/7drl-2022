@@ -15,6 +15,7 @@ class Level(BaseComponent):
         level_up_factor: int = 150,
         xp_given: int = 0,
     ):
+        super().__init__()
         self.current_level = current_level
         self.current_xp = current_xp
         self.level_up_base = level_up_base

@@ -4,6 +4,7 @@ import game.color
 import game.entity
 import game.input_handlers
 import game.render_order
+from game.components.ai import BaseAI
 from game.components.base_component import BaseComponent
 
 
@@ -11,6 +12,7 @@ class Fighter(BaseComponent):
     parent: game.entity.Actor
 
     def __init__(self, hp: int, base_defense: int, base_power: int):
+        super().__init__()
         self.max_hp = hp
         self._hp = hp
         self.base_defense = base_defense
@@ -23,7 +25,7 @@ class Fighter(BaseComponent):
     @hp.setter
     def hp(self, value: int) -> None:
         self._hp = max(0, min(value, self.max_hp))
-        if self._hp == 0 and self.entity.ai:
+        if self._hp == 0 and self.entity.try_get(BaseAI):
             self.die()
 
     @property
@@ -59,7 +61,7 @@ class Fighter(BaseComponent):
         self.entity.char = "%"
         self.entity.color = (191, 0, 0)
         self.entity.blocks_movement = False
-        self.entity.ai = None
+        self.entity.set_child(BaseAI, None)
         self.entity.name = f"remains of {self.entity.name}"
         self.entity.render_order = game.render_order.RenderOrder.CORPSE
 

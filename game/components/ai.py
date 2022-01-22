@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import tcod
@@ -10,9 +10,10 @@ from numpy.typing import NDArray
 import game.actions
 import game.entity
 from game.actions import Action
+from game.node import Node
 
 
-class BaseAI(Action):
+class BaseAI(Action, Node):
     def perform(self) -> None:
         raise NotImplementedError()
 
@@ -80,7 +81,7 @@ class ConfusedEnemy(BaseAI):
     If an actor occupies a tile it is randomly moving into, it will attack.
     """
 
-    def __init__(self, entity: game.entity.Actor, previous_ai: Optional[BaseAI], turns_remaining: int):
+    def __init__(self, entity: game.entity.Actor, previous_ai: BaseAI, turns_remaining: int):
         super().__init__(entity)
 
         self.previous_ai = previous_ai
@@ -90,7 +91,8 @@ class ConfusedEnemy(BaseAI):
         # Revert the AI back to the original state if the effect has run its course.
         if self.turns_remaining <= 0:
             self.engine.message_log.add_message(f"The {self.entity.name} is no longer confused.")
-            self.entity.ai = self.previous_ai
+            assert self.parent
+            self.parent.set_child(BaseAI, self.previous_ai)
         else:
             # Pick a random direction
             direction_x, direction_y = random.choice(
