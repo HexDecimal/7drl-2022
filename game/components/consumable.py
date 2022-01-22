@@ -4,6 +4,7 @@ from typing import Optional
 
 import game.actions
 import game.color
+import game.combat
 import game.components.ai
 import game.components.inventory
 import game.engine
@@ -108,7 +109,7 @@ class FireballDamageConsumable(Consumable):
                 self.engine.message_log.add_message(
                     f"The {actor.name} is engulfed in a fiery explosion, taking {self.damage} damage!"
                 )
-                actor.fighter.take_damage(self.damage)
+                game.combat.apply_damage(actor.fighter, self.damage)
                 targets_hit = True
 
         if not targets_hit:
@@ -123,7 +124,7 @@ class HealingConsumable(Consumable):
 
     def activate(self, action: game.actions.ItemAction) -> None:
         consumer = action.entity
-        amount_recovered = consumer.fighter.heal(self.amount)
+        amount_recovered = game.combat.heal(consumer.fighter, self.amount)
 
         if amount_recovered > 0:
             self.engine.message_log.add_message(
@@ -160,7 +161,7 @@ class LightningDamageConsumable(Consumable):
             self.engine.message_log.add_message(
                 f"A lighting bolt strikes the {target.name} with a loud thunder, for {self.damage} damage!"
             )
-            target.fighter.take_damage(self.damage)
+            game.combat.apply_damage(target.fighter, self.damage)
             self.consume()
         else:
             raise game.exceptions.Impossible("No enemy is close enough to strike.")

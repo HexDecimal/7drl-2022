@@ -44,7 +44,7 @@ class Entity(Node):
     def gamemap(self) -> game.game_map.GameMap:
         return self.get_parent(game.game_map.GameMap)
 
-    def spawn(self: T, gamemap: game.game_map.GameMap, x: int, y: int) -> T:
+    def spawn(self: T, gamemap: Node, x: int, y: int) -> T:
         """Spawn a copy of this instance at the given location."""
         clone = copy.deepcopy(self)
         clone.x = x
@@ -52,7 +52,7 @@ class Entity(Node):
         clone.parent = gamemap
         return clone
 
-    def place(self, x: int, y: int, gamemap: Optional[game.game_map.GameMap] = None) -> None:
+    def place(self, x: int, y: int, gamemap: Optional[Node] = None) -> None:
         """Place this entitiy at a new location.  Handles moving across GameMaps."""
         self.x = x
         self.y = y

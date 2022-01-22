@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Tuple
 
 import game.color
+import game.combat
 import game.exceptions
 
 if TYPE_CHECKING:
@@ -17,7 +18,7 @@ class Action:
 
     @property
     def engine(self) -> game.engine.Engine:
-        return self.entity.gamemap.engine
+        return self.entity.get_parent(game.engine.Engine)
 
     def perform(self) -> None:
         """Perform this action now.
@@ -89,7 +90,7 @@ class Melee(ActionWithDirection):
 
         if damage > 0:
             self.engine.message_log.add_message(f"{attack_desc} for {damage} hit points.", attack_color)
-            target.fighter.hp -= damage
+            game.combat.apply_damage(target.fighter, damage)
         else:
             self.engine.message_log.add_message(f"{attack_desc} but does no damage.", attack_color)
 
