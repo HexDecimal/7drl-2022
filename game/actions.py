@@ -121,7 +121,7 @@ class Pickup(Action):
             if len(inventory.items) >= inventory.capacity:
                 raise game.exceptions.Impossible("Your inventory is full.")
 
-            self.engine.game_map.remove(item)
+            assert item.parent is self.engine.game_map
             item.parent = self.entity.inventory
             inventory.items.append(item)
 
@@ -174,11 +174,10 @@ class TakeStairs(Action):
         Take the stairs, if any exist at the entity's location.
         """
         if (self.entity.x, self.entity.y) == self.engine.game_map.downstairs_location:
-            self.engine.game_map.remove(self.engine.player)
+            assert self.engine.player.parent is self.engine.game_map
             self.engine.game_world.generate_floor()
             self.engine.message_log.add_message("You descend the staircase.", game.color.descend)
-            self.engine.game_map.add(self.engine.player)
+            self.engine.player.parent = self.engine.game_map
             self.engine.player.x, self.engine.player.y = self.engine.game_map.enter_xy
-
         else:
             raise game.exceptions.Impossible("There are no stairs here.")

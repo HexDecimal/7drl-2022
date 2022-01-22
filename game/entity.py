@@ -49,7 +49,7 @@ class Entity(Node):
         clone = copy.deepcopy(self)
         clone.x = x
         clone.y = y
-        gamemap.add(clone)
+        clone.parent = gamemap
         return clone
 
     def place(self, x: int, y: int, gamemap: Optional[game.game_map.GameMap] = None) -> None:
@@ -95,14 +95,13 @@ class Actor(Entity):
             render_order=game.render_order.RenderOrder.ACTOR,
         )
 
-        self.add(ai_cls(self))
-
-        self.add(equipment)
-        self.add(fighter)
+        ai_cls(self).parent = self
+        equipment.parent = self
+        fighter.parent = self
         if inventory is None:
             inventory = game.components.inventory.Inventory(0)
-        self.add(inventory)
-        self.add(level)
+        inventory.parent = self
+        level.parent = self
 
     @property
     def equipment(self) -> game.components.equipment.Equipment:
@@ -148,9 +147,9 @@ class Item(Entity):
             render_order=game.render_order.RenderOrder.ITEM,
         )
         if consumable:
-            self.add(consumable)
+            consumable.parent = self
         if equippable:
-            self.add(equippable)
+            equippable.parent = self
 
     @property
     def consumable(self) -> Optional[game.components.consumable.Consumable]:

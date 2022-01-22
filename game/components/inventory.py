@@ -19,7 +19,6 @@ class Inventory(BaseComponent):
         self.items.remove(item)
 
         item.parent = self.gamemap
-        self.gamemap.add(item)
         item.x = self.owner.x
         item.y = self.owner.y
 
