@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterator, Optional, Set
+from typing import Iterator, Optional
 
 import numpy as np
 from numpy.typing import NDArray
