@@ -15,15 +15,18 @@ from game.typing import ActionOrHandler
 
 
 class Consumable(Node):
-    parent: game.entity.Item
+    @property
+    def item(self) -> game.entity.Item:
+        assert isinstance(self.parent, game.entity.Item)
+        return self.parent
 
     @property
     def engine(self) -> game.engine.Engine:
-        return self.parent.gamemap.engine
+        return self.get_parent(game.engine.Engine)
 
     def get_action(self, consumer: game.entity.Actor) -> Optional[ActionOrHandler]:
         """Try to return the action for this item."""
-        return game.actions.ItemAction(consumer, self.parent)
+        return game.actions.ItemAction(consumer, self.item)
 
     def activate(self, action: game.actions.ItemAction) -> None:
         """Invoke this items ability.
@@ -34,10 +37,11 @@ class Consumable(Node):
 
     def consume(self) -> None:
         """Remove the consumed item from its containing inventory."""
-        entity = self.parent
-        inventory = entity.parent
-        if isinstance(inventory, game.components.inventory.Inventory):
-            inventory.items.remove(entity)
+        item = self.item
+        inventory = item.parent
+        assert isinstance(inventory, game.components.inventory.Inventory)
+        inventory.items.remove(item)
+        item.parent = None
 
 
 class ConfusionConsumable(Consumable):
@@ -49,7 +53,7 @@ class ConfusionConsumable(Consumable):
         self.engine.message_log.add_message("Select a target location.", game.color.needs_target)
         return game.input_handlers.SingleRangedAttackHandler(
             self.engine,
-            callback=lambda xy: game.actions.ItemAction(consumer, self.parent, xy),
+            callback=lambda xy: game.actions.ItemAction(consumer, self.item, xy),
         )
 
     def activate(self, action: game.actions.ItemAction) -> None:
@@ -87,7 +91,7 @@ class FireballDamageConsumable(Consumable):
         return game.input_handlers.AreaRangedAttackHandler(
             self.engine,
             radius=self.radius,
-            callback=lambda xy: game.actions.ItemAction(consumer, self.parent, xy),
+            callback=lambda xy: game.actions.ItemAction(consumer, self.item, xy),
         )
 
     def activate(self, action: game.actions.ItemAction) -> None:
@@ -122,8 +126,8 @@ class HealingConsumable(Consumable):
         amount_recovered = consumer.fighter.heal(self.amount)
 
         if amount_recovered > 0:
-            self.parent.gamemap.engine.message_log.add_message(
-                f"You consume the {self.parent.name}, and recover {amount_recovered} HP!",
+            self.engine.message_log.add_message(
+                f"You consume the {self.item.name}, and recover {amount_recovered} HP!",
                 game.color.health_recovered,
             )
             self.consume()
@@ -145,7 +149,7 @@ class LightningDamageConsumable(Consumable):
         for actor in self.engine.game_map.entities:
             if not isinstance(actor, game.entity.Actor):
                 continue
-            if actor is not consumer and self.parent.gamemap.visible[actor.x, actor.y]:
+            if actor is not consumer and self.item.gamemap.visible[actor.x, actor.y]:
                 distance = consumer.distance(actor.x, actor.y)
 
                 if distance < closest_distance:
