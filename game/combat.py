@@ -1,11 +1,11 @@
 import game.color
-from game.components.ai import BaseAI
+import game.components.ai
 from game.components.fighter import Fighter
 
 
 def die(fighter: Fighter) -> None:
     actor = fighter.entity
-    if actor.try_get(BaseAI) is None:
+    if actor.try_get(game.components.ai.BaseAI) is None:
         return
     engine = fighter.entity.gamemap.engine
 
@@ -19,7 +19,7 @@ def die(fighter: Fighter) -> None:
     actor.char = "%"
     actor.color = (191, 0, 0)
     actor.blocks_movement = False
-    actor[BaseAI] = None
+    actor[game.components.ai.BaseAI] = None
     actor.name = f"remains of {actor.name}"
     actor.render_order = game.render_order.RenderOrder.CORPSE
 
