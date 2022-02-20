@@ -125,7 +125,7 @@ class EventHandler(BaseEventHandler):
         return self
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[ActionOrHandler]:
-        raise SystemExit(0)
+        raise SystemExit()
 
     def on_render(self, console: tcod.Console) -> None:
         game.rendering.render_map(console, self.engine.game_map)
@@ -162,7 +162,7 @@ class MainGameEventHandler(EventHandler):
         elif key in WAIT_KEYS:
             return game.actions.Wait(self.engine.player)
         elif key == tcod.event.K_ESCAPE:
-            raise SystemExit(0)
+            raise SystemExit()
         elif key == tcod.event.K_v:
             return HistoryViewer(self.engine)
 
