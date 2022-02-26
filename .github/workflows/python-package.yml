@@ -68,8 +68,9 @@ jobs:
       # Archive the PyInstaller build using the appropriate tool for the platform.
       - name: Tar files
         if: runner.os != 'Windows'
+        working-directory: ./dist
         run: |
-          tar --format=ustar -czvf ${{ env.archive-name }}.tar.gz dist/*/
+          tar --format=ustar -czvf "../${{ env.archive-name }}.tar.gz" */
       - name: Archive files
         if: runner.os == 'Windows'
         shell: pwsh
