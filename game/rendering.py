@@ -48,6 +48,7 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
 
 
 def render_ui(console: tcod.Console, engine: game.engine.Engine) -> None:
+    return None
     engine.message_log.render(console=console, x=21, y=45, width=40, height=5)
 
     game.render_functions.render_bar(

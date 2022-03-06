@@ -3,8 +3,12 @@ from __future__ import annotations
 import random
 from typing import Dict, Iterator, List, Tuple
 
+import numpy as np
 import tcod
+import wfc.wfc_control
+from numpy.typing import NDArray
 
+import game
 import game.components.consumable
 import game.engine
 import game.entity
@@ -137,6 +141,13 @@ def tunnel_between(
         yield x, y
 
 
+def load_pattern(name: str) -> NDArray[np.uint8]:
+    pattern_txt = (game.DATA_DIR / name).read_text(encoding="utf-8").strip().splitlines()
+    pattern: NDArray[np.uint8] = np.asarray([[ord(c) for c in row] for row in pattern_txt], dtype=np.uint8)
+    pattern = pattern[:, :, np.newaxis]
+    return pattern
+
+
 def generate_dungeon(
     max_rooms: int,
     room_min_size: int,
@@ -181,12 +192,27 @@ def generate_dungeon(
 
             center_of_last_room = new_room.center
 
-        place_entities(new_room, dungeon, engine.game_world.current_floor)
+        # place_entities(new_room, dungeon, engine.game_world.current_floor)
 
         dungeon.tiles[center_of_last_room] = DOWN_STAIRS
         dungeon.downstairs_location = center_of_last_room
 
         # Finally, append the new room to the list.
         rooms.append(new_room)
+
+    gen = wfc.wfc_control.execute_wfc(
+        image=load_pattern("test3.txt"),
+        pattern_width=3,
+        output_size=(map_height, map_width),
+        output_periodic=False,
+        input_periodic=False,
+    )[:, :, 0].T
+
+    dungeon.tiles[gen == ord("#")] = WALL
+    dungeon.tiles[gen == ord(".")] = FLOOR
+    dungeon.tiles[gen == ord("1")] = FLOOR
+
+    dungeon.enter_xy = (1, 1)
+    dungeon.explored[:] = True
 
     return dungeon
