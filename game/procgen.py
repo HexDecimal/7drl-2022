@@ -18,6 +18,7 @@ import game.game_map
 WALL = 0
 FLOOR = 1
 DOWN_STAIRS = 2
+OUTDOORS = 3
 
 max_items_by_floor = [
     (1, 1),
@@ -201,15 +202,17 @@ def generate_dungeon(
         rooms.append(new_room)
 
     gen = wfc.wfc_control.execute_wfc(
-        image=load_pattern("test3.txt"),
+        image=load_pattern("pattern4.txt"),
         pattern_width=3,
         output_size=(map_height, map_width),
         output_periodic=False,
         input_periodic=False,
+        input_ground=((1, 1), (1, 1)),
+        output_ground=((1, 3), (1, 3)),
     )[:, :, 0].T
 
     dungeon.tiles[gen == ord("#")] = WALL
-    dungeon.tiles[gen == ord(".")] = FLOOR
+    dungeon.tiles[gen == ord(".")] = OUTDOORS
     dungeon.tiles[gen == ord("1")] = FLOOR
 
     dungeon.enter_xy = (1, 1)
