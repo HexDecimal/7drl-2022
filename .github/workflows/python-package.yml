@@ -11,7 +11,7 @@ defaults:
 
 env:
   python-version: "3.8"
-  pyinstaller-version: "4.9"
+  pyinstaller-version: "4.10"
   project-name: roguelike-tutorial
 
 jobs:
