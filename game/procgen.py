@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import logging
 import random
-from typing import Dict, Iterator, List, Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 
 import numpy as np
+import scipy.signal  # type: ignore
 import tcod
 import wfc.wfc_control
 from numpy.typing import NDArray
@@ -14,6 +16,8 @@ import game.engine
 import game.entity
 import game.entity_factories
 import game.game_map
+
+logger = logging.getLogger(__name__)
 
 WALL = 0
 FLOOR = 1
@@ -214,6 +218,40 @@ def generate_dungeon(
     dungeon.tiles[gen == ord("#")] = WALL
     dungeon.tiles[gen == ord(".")] = OUTDOORS
     dungeon.tiles[gen == ord("1")] = FLOOR
+
+    logger.info("Making indoor areas accessible.")
+
+    accessible_path = tcod.path.maxarray((map_width, map_height), order="F")  # Accessible area distance-path.
+    accessible_path[gen == ord(".")] = 0  # Initialize with outdoors.
+    unaccessible_zone = gen == ord("1")  # Connect to the innder room area.
+
+    CARDINAL: NDArray[np.int8] = np.asarray([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.int8)
+
+    while unaccessible_zone.any():
+        cost: NDArray[np.int32] = np.zeros((map_width, map_height), dtype=np.int32, order="F")
+        cost[dungeon.tiles == WALL] = 5
+        cost[dungeon.tiles == OUTDOORS] = 10
+        cost[dungeon.tiles == FLOOR] = 1
+
+        cost = scipy.signal.convolve2d(cost, CARDINAL, "same")
+        cost[dungeon.tiles != WALL] = 0
+        cost[dungeon.tiles == OUTDOORS] = 1
+        cost[dungeon.tiles == FLOOR] = 1
+
+        graph = tcod.path.SimpleGraph(cost=cost, cardinal=1, diagonal=0)
+        pf = tcod.path.Pathfinder(graph)
+        pf.add_root(random.choice(np.argwhere(accessible_path != np.iinfo(accessible_path.dtype).max)))  # type: ignore
+        path = pf.path_from(random.choice(np.argwhere(unaccessible_zone)))  # type: ignore
+        path_indexes = tuple(path.T)
+        path_values = dungeon.tiles[path_indexes]
+        logger.info(f"Opening path with walls={(path_values == WALL).sum()}, length={len(path)}.")
+        path_values[path_values == WALL] = FLOOR
+        dungeon.tiles[path_indexes] = path_values
+
+        tcod.path.dijkstra2d(
+            accessible_path, cost=dungeon.tiles == FLOOR, cardinal=1, diagonal=None, out=accessible_path
+        )
+        unaccessible_zone &= accessible_path == np.iinfo(accessible_path.dtype).max
 
     dungeon.enter_xy = (1, 1)
     dungeon.explored[:] = True
