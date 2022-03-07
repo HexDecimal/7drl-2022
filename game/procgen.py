@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import random
-from typing import Any, Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 import numpy as np
 import scipy.signal  # type: ignore
