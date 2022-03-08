@@ -213,6 +213,10 @@ def generate_dungeon(
         )
         unaccessible_zone &= accessible_path == np.iinfo(accessible_path.dtype).max
 
+    for x, y in random.sample(np.argwhere(gen == ord("1")).tolist(), 3):
+        dungeon.fire[x, y] += 20
+        dungeon.fuel[x, y] += 20 * 10
+
     dungeon.enter_xy = (1, 1)
     dungeon.explored[:] = True
 

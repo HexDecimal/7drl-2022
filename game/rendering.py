@@ -27,6 +27,7 @@ SHROUD: NDArray[Any] = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=tc
 def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
     # The default graphics are of tiles that are visible.
     light = tile_graphics[gamemap.tiles]
+    light[gamemap.fire > 0] = (ord("^"), (255, 255, 255), (255, 255, 0))
 
     # Apply effects to create a darkened map of tile graphics.
     dark = light.copy()

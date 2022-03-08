@@ -16,6 +16,10 @@ class GameMap(Node):
         self.engine = engine
         self.width, self.height = width, height
         self.tiles: NDArray[np.uint8] = np.zeros((width, height), dtype=np.uint8, order="F")
+        self.fire: NDArray[np.int32] = np.zeros((width, height), dtype=np.int32, order="F")
+        self.fuel: NDArray[np.int32] = np.zeros((width, height), dtype=np.int32, order="F")
+        self.fuel[:] = 800
+
         self.enter_xy = (width // 2, height // 2)  # Entrance coordinates.
 
         self.visible = np.full((width, height), fill_value=False, order="F")  # Tiles the player can currently see

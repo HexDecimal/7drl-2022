@@ -11,6 +11,7 @@ import game.entity
 import game.exceptions
 import game.game_map
 import game.message_log
+import game.simulation
 from game.components.ai import BaseAI
 from game.node import Node
 
@@ -29,6 +30,7 @@ class Engine(Node):
         self.message_log = game.message_log.MessageLog()
 
     def handle_enemy_turns(self) -> None:
+        game.simulation.fire_step(self.game_map)
         logger.info("Enemy turn.")
         for entity in self.game_map.entities:
             if entity is self.player:
