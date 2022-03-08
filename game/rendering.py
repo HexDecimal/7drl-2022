@@ -6,6 +6,7 @@ import numpy as np
 import tcod
 from numpy.typing import NDArray
 
+import g
 import game.engine
 import game.game_map
 import game.render_functions
@@ -32,21 +33,25 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
     dark["fg"] //= 2
     dark["bg"] //= 8
 
+    visible = gamemap.visible
+    if g.fullbright:
+        visible = np.ones_like(visible)
+
     # If a tile is in the "visible" array, then draw it with the "light" colors.
     # If it isn't, but it's in the "explored" array, then draw it with the "dark" colors.
     # Otherwise, the default graphic is "SHROUD".
     console.rgb[0 : gamemap.width, 0 : gamemap.height] = np.select(
-        condlist=[gamemap.visible, gamemap.explored],
+        condlist=[visible, gamemap.explored],
         choicelist=[light, dark],
         default=SHROUD,
     )
 
     for entity in sorted(gamemap.entities, key=lambda x: x.render_order.value):
-        if not gamemap.visible[entity.x, entity.y]:
+        if not visible[entity.x, entity.y]:
             continue  # Skip entities that are not in the FOV.
         console.print(entity.x, entity.y, entity.char, fg=entity.color)
 
-    gamemap.visible.choose((gamemap.memory, light), out=gamemap.memory)
+    visible.choose((gamemap.memory, light), out=gamemap.memory)
 
 
 def render_ui(console: tcod.Console, engine: game.engine.Engine) -> None:

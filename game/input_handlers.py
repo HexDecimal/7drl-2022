@@ -6,6 +6,7 @@ from typing import Callable, Optional, Tuple
 import numpy as np
 import tcod
 
+import g
 import game.actions
 import game.color
 import game.engine
@@ -177,6 +178,8 @@ class MainGameEventHandler(EventHandler):
             return CharacterScreenEventHandler(self.engine)
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
+        elif __debug__ and key == tcod.event.KeySym.F8:
+            g.fullbright = not g.fullbright
 
         return None
 
