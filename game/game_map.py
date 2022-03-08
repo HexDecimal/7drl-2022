@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Iterator, Optional
+from typing import Any, Iterator, Optional
 
 import numpy as np
 from numpy.typing import NDArray
 
 import game.engine
 import game.entity
+from game.constants import SHROUD
 from game.node import Node
 
 
@@ -17,8 +18,9 @@ class GameMap(Node):
         self.width, self.height = width, height
         self.tiles: NDArray[np.uint8] = np.zeros((width, height), dtype=np.uint8, order="F")
         self.fire: NDArray[np.int32] = np.zeros((width, height), dtype=np.int32, order="F")
-        self.fuel: NDArray[np.int32] = np.zeros((width, height), dtype=np.int32, order="F")
-        self.fuel[:] = 800
+        self.fuel: NDArray[np.int32] = np.full((width, height), fill_value=800, dtype=np.int32, order="F")
+
+        self.memory: NDArray[Any] = np.full((width, height), fill_value=SHROUD, order="F")
 
         self.enter_xy = (width // 2, height // 2)  # Entrance coordinates.
 

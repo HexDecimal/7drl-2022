@@ -218,6 +218,5 @@ def generate_dungeon(
         dungeon.fuel[x, y] += 20 * 10
 
     dungeon.enter_xy = (1, 1)
-    dungeon.explored[:] = True
 
     return dungeon

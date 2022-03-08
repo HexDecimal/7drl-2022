@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 import game.engine
 import game.game_map
 import game.render_functions
+from game.constants import SHROUD
 
 tile_graphics: NDArray[Any] = np.array(
     [
@@ -20,9 +21,6 @@ tile_graphics: NDArray[Any] = np.array(
     dtype=tcod.console.rgb_graphic,
 )
 
-# SHROUD represents unexplored, unseen tiles
-SHROUD: NDArray[Any] = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=tcod.console.rgb_graphic)
-
 
 def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
     # The default graphics are of tiles that are visible.
@@ -30,7 +28,7 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
     light[gamemap.fire > 0] = (ord("^"), (255, 255, 255), (255, 255, 0))
 
     # Apply effects to create a darkened map of tile graphics.
-    dark = light.copy()
+    dark = gamemap.memory.copy()
     dark["fg"] //= 2
     dark["bg"] //= 8
 
@@ -47,6 +45,8 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
         if not gamemap.visible[entity.x, entity.y]:
             continue  # Skip entities that are not in the FOV.
         console.print(entity.x, entity.y, entity.char, fg=entity.color)
+
+    gamemap.visible.choose((gamemap.memory, light), out=gamemap.memory)
 
 
 def render_ui(console: tcod.Console, engine: game.engine.Engine) -> None:
