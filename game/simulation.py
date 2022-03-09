@@ -2,6 +2,8 @@ import numpy as np
 import scipy.signal  # type: ignore
 from numpy.typing import NDArray
 
+import game.combat
+import game.entity
 import game.game_map
 
 CARDINAL: NDArray[np.int8] = np.asarray([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=np.int8)
@@ -20,3 +22,9 @@ def fire_step(gamemap: game.game_map.GameMap) -> None:
     gamemap.fire[:] += new_fire
 
     gamemap.fire.clip(max=gamemap.fuel, out=gamemap.fire)
+
+    for obj in gamemap.entities:
+        if not isinstance(obj, game.entity.Actor):
+            continue
+        damage = gamemap.fire[obj.x, obj.y]
+        game.combat.apply_damage(obj.fighter, damage)

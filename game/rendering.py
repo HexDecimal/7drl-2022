@@ -7,6 +7,7 @@ import tcod
 from numpy.typing import NDArray
 
 import g
+import game.constants
 import game.engine
 import game.game_map
 import game.render_functions
@@ -55,20 +56,19 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
 
 
 def render_ui(console: tcod.Console, engine: game.engine.Engine) -> None:
-    return None
-    engine.message_log.render(console=console, x=21, y=45, width=40, height=5)
+    UI_WIDTH = game.constants.ui_width
+    UI_LEFT = console.width - UI_WIDTH
+
+    engine.message_log.render(console=console, x=UI_LEFT, y=0, width=UI_WIDTH, height=console.height)
+    console.draw_rect(UI_LEFT, 0, UI_WIDTH, 2, 0x20, (0xFF, 0xFF, 0xFF), (0, 0, 0))
 
     game.render_functions.render_bar(
         console=console,
+        x=UI_LEFT,
+        y=0,
         current_value=engine.player.fighter.hp,
         maximum_value=engine.player.fighter.max_hp,
-        total_width=20,
+        total_width=UI_WIDTH,
     )
 
-    game.render_functions.render_dungeon_level(
-        console=console,
-        dungeon_level=engine.game_world.current_floor,
-        location=(0, 47),
-    )
-
-    game.render_functions.render_names_at_mouse_location(console=console, x=21, y=44, engine=engine)
+    game.render_functions.render_names_at_mouse_location(console=console, x=UI_LEFT, y=1, engine=engine)

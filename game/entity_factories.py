@@ -1,5 +1,5 @@
 from game.components import consumable, equippable
-from game.components.ai import HostileEnemy
+from game.components.ai import HostileEnemy, Idle
 from game.components.equipment import Equipment
 from game.components.fighter import Fighter
 from game.components.inventory import Inventory
@@ -15,6 +15,16 @@ player = Actor(
     fighter=Fighter(hp=30, base_defense=1, base_power=2),
     inventory=Inventory(capacity=26),
     level=Level(level_up_base=200),
+)
+civ = Actor(
+    char="@",
+    color=(0xC0, 0xC0, 0xC0),
+    name="NPC",
+    ai_cls=Idle,
+    equipment=Equipment(),
+    fighter=Fighter(hp=30, base_defense=1, base_power=2),
+    inventory=Inventory(capacity=0),
+    level=Level(),
 )
 
 orc = Actor(

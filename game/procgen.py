@@ -217,6 +217,9 @@ def generate_dungeon(
         dungeon.fire[x, y] += 20
         dungeon.fuel[x, y] += 20 * 10
 
+    for x, y in random.sample(np.argwhere(gen == ord("1")).tolist(), 10):
+        game.entity_factories.civ.spawn(dungeon, x, y)
+
     dungeon.enter_xy = (1, 1)
 
     return dungeon

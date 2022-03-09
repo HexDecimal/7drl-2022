@@ -12,6 +12,7 @@ import game.input_handlers
 import game.procgen
 import game.setup_game
 import game.typing
+from game.constants import screen_height, screen_width
 
 
 def save_game(handler: game.typing.EventHandler, filename: str) -> None:
@@ -22,9 +23,6 @@ def save_game(handler: game.typing.EventHandler, filename: str) -> None:
 
 
 def main() -> None:
-    screen_width = 80
-    screen_height = 50
-
     tileset = tcod.tileset.load_tilesheet("data/dejavu16x16_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD)
 
     event_handler: game.typing.EventHandler = game.setup_game.MainMenu()

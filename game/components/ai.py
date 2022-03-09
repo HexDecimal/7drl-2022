@@ -47,6 +47,11 @@ class BaseAI(Action, Node):
         return [(index[0], index[1]) for index in path]
 
 
+class Idle(BaseAI):
+    def perform(self) -> None:
+        pass
+
+
 class HostileEnemy(BaseAI):
     def __init__(self, entity: game.entity.Actor):
         super().__init__(entity)

@@ -17,6 +17,7 @@ import game.entity_factories
 import game.game_map
 import game.input_handlers
 import game.procgen
+from game.constants import map_height, map_width, max_rooms, room_max_size, room_min_size
 from game.input_handlers import BaseEventHandler
 
 # Load the background image.  Pillow returns an object convertable into a NumPy array.
@@ -25,13 +26,6 @@ background_image = Image.open("data/menu_background.png")
 
 def new_game() -> game.engine.Engine:
     """Return a brand new game session as an Engine instance."""
-    map_width = 80 // 2
-    map_height = 50 - 7
-
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
-
     engine = game.engine.Engine()
     engine.game_world = game.game_map.GameWorld(
         engine=engine,
