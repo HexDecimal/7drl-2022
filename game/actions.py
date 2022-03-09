@@ -97,8 +97,11 @@ class Melee(ActionWithDirection):
 
 class Bump(ActionWithDirection):
     def perform(self) -> None:
-        if self.engine.game_map.fire[self.dest_xy]:
-            self.engine.game_map.fire[self.dest_xy] = 0
+        gamemap = self.engine.game_map
+        if gamemap.fire[self.dest_xy]:
+            gamemap.fire[self.dest_xy] = 0
+        elif gamemap.in_bounds(*self.dest_xy) and gamemap.tiles[self.dest_xy] == 0:
+            gamemap.tiles[self.dest_xy] = 1
         elif self.target_actor:
             return Melee(self.entity, self.dx, self.dy).perform()
         else:
