@@ -201,9 +201,9 @@ def generate_dungeon(
 
         graph = tcod.path.SimpleGraph(cost=cost, cardinal=1, diagonal=0)
         pf = tcod.path.Pathfinder(graph)
-        accessible_root = random.choice(np.argwhere(accessible_path != np.iinfo(accessible_path.dtype).max))  # type: ignore
+        accessible_root = random.choice(np.argwhere(accessible_path != np.iinfo(accessible_path.dtype).max))
         pf.add_root(accessible_root)
-        path = pf.path_from(random.choice(np.argwhere(unaccessible_zone)))  # type: ignore
+        path = pf.path_from(random.choice(np.argwhere(unaccessible_zone)))
         path_indexes = tuple(path.T)
         path_values = dungeon.tiles[path_indexes]
         path_doorways = path[path_values == WALL]
