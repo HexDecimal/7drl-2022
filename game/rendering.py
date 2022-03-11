@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-
 import numpy as np
 import tcod
-from numpy.typing import NDArray
 
 import g
 import game.constants
@@ -12,16 +9,7 @@ import game.engine
 import game.game_map
 import game.render_functions
 from game.constants import SHROUD
-
-tile_graphics: NDArray[Any] = np.array(
-    [
-        (ord("#"), (0x80, 0x80, 0x80), (0x40, 0x40, 0x40)),  # wall
-        (ord("."), (0x40, 0x40, 0x40), (0x18, 0x18, 0x18)),  # floor
-        (ord(">"), (0xFF, 0xFF, 0xFF), (0x18, 0x18, 0x18)),  # down stairs
-        (ord(","), (0x40, 0x40, 0x40), (0x18, 0x18, 0x18)),  # outdoors
-    ],
-    dtype=tcod.console.rgb_graphic,
-)
+from game.tiles import tile_graphics
 
 
 def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
