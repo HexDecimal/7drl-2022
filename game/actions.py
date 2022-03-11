@@ -98,12 +98,16 @@ class Melee(ActionWithDirection):
 class Bump(ActionWithDirection):
     def perform(self) -> None:
         gamemap = self.engine.game_map
+        if not gamemap.in_bounds(*self.dest_xy):
+            raise game.exceptions.Impossible("You can't go that way.")
         if gamemap.fire[self.dest_xy]:
             gamemap.fire[self.dest_xy] = 0
-        elif gamemap.in_bounds(*self.dest_xy) and gamemap.tiles[self.dest_xy] == 0:
-            gamemap.tiles[self.dest_xy] = 1
+        # elif gamemap.tiles[self.dest_xy] == 0:  # Remove walls.
+        #    gamemap.tiles[self.dest_xy] = 1
         elif self.target_actor:
-            return Melee(self.entity, self.dx, self.dy).perform()
+            entity = self.entity
+            target = self.target_actor
+            entity.x, entity.y, target.x, target.y = target.x, target.y, entity.x, entity.y
         else:
             return Move(self.entity, self.dx, self.dy).perform()
 

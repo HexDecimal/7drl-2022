@@ -16,6 +16,7 @@ import game.engine
 import game.entity
 import game.entity_factories
 import game.game_map
+import game.tiles
 
 logger = logging.getLogger(__name__)
 
@@ -200,25 +201,35 @@ def generate_dungeon(
 
         graph = tcod.path.SimpleGraph(cost=cost, cardinal=1, diagonal=0)
         pf = tcod.path.Pathfinder(graph)
-        pf.add_root(random.choice(np.argwhere(accessible_path != np.iinfo(accessible_path.dtype).max)))  # type: ignore
+        accessible_root = random.choice(np.argwhere(accessible_path != np.iinfo(accessible_path.dtype).max))  # type: ignore
+        pf.add_root(accessible_root)
         path = pf.path_from(random.choice(np.argwhere(unaccessible_zone)))  # type: ignore
         path_indexes = tuple(path.T)
         path_values = dungeon.tiles[path_indexes]
+        path_doorways = path[path_values == WALL]
         logger.info(f"Opening path with walls={(path_values == WALL).sum()}, length={len(path)}.")
         path_values[path_values == WALL] = FLOOR
         dungeon.tiles[path_indexes] = path_values
+        for x, y in path_doorways.tolist():
+            assert isinstance(x, int)
+            assert isinstance(y, int)
+            # game.entity_factories.door_test.spawn(dungeon, x, y)
 
         tcod.path.dijkstra2d(
             accessible_path, cost=dungeon.tiles == FLOOR, cardinal=1, diagonal=None, out=accessible_path
         )
         unaccessible_zone &= accessible_path == np.iinfo(accessible_path.dtype).max
 
+    dungeon.fuel = game.tiles.tile_fuel[dungeon.tiles]
+
     for x, y in random.sample(np.argwhere(gen == ord("1")).tolist(), 3):
         dungeon.fire[x, y] += 20
         dungeon.fuel[x, y] += 20 * 10
+        dungeon.memory[x, y]["ch"] = ord("?")
 
     for x, y in random.sample(np.argwhere(gen == ord("1")).tolist(), 10):
         game.entity_factories.civ.spawn(dungeon, x, y)
+        dungeon.memory[x, y]["ch"] = ord("?")
 
     dungeon.enter_xy = (1, 1)
 

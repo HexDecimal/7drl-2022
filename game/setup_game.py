@@ -9,8 +9,8 @@ import traceback
 from typing import Optional
 
 import tcod
-from PIL import Image  # type: ignore
 
+import g
 import game.color
 import game.engine
 import game.entity_factories
@@ -19,9 +19,6 @@ import game.input_handlers
 import game.procgen
 from game.constants import map_height, map_width, max_rooms, room_max_size, room_min_size
 from game.input_handlers import BaseEventHandler
-
-# Load the background image.  Pillow returns an object convertable into a NumPy array.
-background_image = Image.open("data/menu_background.png")
 
 
 def new_game() -> game.engine.Engine:
@@ -54,13 +51,14 @@ def new_game() -> game.engine.Engine:
     engine.player.inventory.items.append(leather_armor)
     engine.player.equipment.toggle_equip(leather_armor, add_message=False)
 
+    g.engine = engine
     return engine
 
 
 def load_game(filename: str) -> game.engine.Engine:
     """Load an Engine instance from a file."""
     with open(filename, "rb") as f:
-        engine = pickle.loads(lzma.decompress(f.read()))
+        g.engine = engine = pickle.loads(lzma.decompress(f.read()))
     assert isinstance(engine, game.engine.Engine)
     return engine
 
@@ -70,7 +68,6 @@ class MainMenu(BaseEventHandler):
 
     def on_render(self, console: tcod.Console) -> None:
         """Render the main menu on a background image."""
-        console.draw_semigraphics(background_image, 0, 0)
 
         console.print(
             console.width // 2,

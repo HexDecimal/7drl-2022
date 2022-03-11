@@ -8,14 +8,13 @@ import game.constants
 import game.engine
 import game.game_map
 import game.render_functions
-from game.constants import SHROUD
 from game.tiles import tile_graphics
 
 
 def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
     # The default graphics are of tiles that are visible.
     light = tile_graphics[gamemap.tiles]
-    light[gamemap.fire > 0] = (ord("^"), (255, 255, 255), (255, 255, 0))
+    light[gamemap.fire > 0] = (ord("^"), (255, 255, 255), (0xCC, 0x22, 0))
 
     # Apply effects to create a darkened map of tile graphics.
     dark = gamemap.memory.copy()
@@ -26,13 +25,16 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
     if g.fullbright:
         visible = np.ones_like(visible)
 
-    # If a tile is in the "visible" array, then draw it with the "light" colors.
-    # If it isn't, but it's in the "explored" array, then draw it with the "dark" colors.
-    # Otherwise, the default graphic is "SHROUD".
+    for entity in sorted(gamemap.entities, key=lambda x: x.render_order.value):
+        if not visible[entity.x, entity.y]:
+            continue  # Skip entities that are not in the FOV.
+        light[entity.x, entity.y]["ch"] = ord(entity.char)
+        light[entity.x, entity.y]["fg"] = entity.color
+
     console.rgb[0 : gamemap.width, 0 : gamemap.height] = np.select(
         condlist=[visible, gamemap.explored],
         choicelist=[light, dark],
-        default=SHROUD,
+        default=dark,
     )
 
     for entity in sorted(gamemap.entities, key=lambda x: x.render_order.value):
@@ -46,8 +48,11 @@ def render_map(console: tcod.Console, gamemap: game.game_map.GameMap) -> None:
 def render_ui(console: tcod.Console, engine: game.engine.Engine) -> None:
     UI_WIDTH = game.constants.ui_width
     UI_LEFT = console.width - UI_WIDTH
+    LOG_HEIGHT = console.height - 8
 
-    engine.message_log.render(console=console, x=UI_LEFT, y=0, width=UI_WIDTH, height=console.height)
+    engine.message_log.render(
+        console=console, x=UI_LEFT, y=console.height - LOG_HEIGHT, width=UI_WIDTH, height=LOG_HEIGHT
+    )
     console.draw_rect(UI_LEFT, 0, UI_WIDTH, 2, 0x20, (0xFF, 0xFF, 0xFF), (0, 0, 0))
 
     game.render_functions.render_bar(
@@ -60,3 +65,14 @@ def render_ui(console: tcod.Console, engine: game.engine.Engine) -> None:
     )
 
     game.render_functions.render_names_at_mouse_location(console=console, x=UI_LEFT, y=1, engine=engine)
+
+    if g.mouse_pos:
+        console.rgb[g.mouse_pos]["fg"] = (0, 0, 0)
+        console.rgb[g.mouse_pos]["bg"] = (255, 255, 255)
+        if g.fullbright or engine.game_map.visible[g.mouse_pos]:
+            console.print(
+                UI_LEFT,
+                2,
+                f"Fire={engine.game_map.fire[g.mouse_pos]}, Heat={engine.game_map.heat[g.mouse_pos]}, "
+                f"Smoke={engine.game_map.smoke[g.mouse_pos]},\nFuel={engine.game_map.fuel[g.mouse_pos]}",
+            )

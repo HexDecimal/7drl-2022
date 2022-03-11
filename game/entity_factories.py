@@ -4,7 +4,7 @@ from game.components.equipment import Equipment
 from game.components.fighter import Fighter
 from game.components.inventory import Inventory
 from game.components.level import Level
-from game.entity import Actor, Item
+from game.entity import Actor, Entity, Item
 
 player = Actor(
     char="@",
@@ -25,6 +25,13 @@ civ = Actor(
     fighter=Fighter(hp=30, base_defense=1, base_power=2),
     inventory=Inventory(capacity=0),
     level=Level(),
+)
+
+door_test = Entity(
+    char="+",
+    color=(0xFF, 0xFF, 0xFF),
+    name="Door",
+    blocks_movement=True,
 )
 
 orc = Actor(

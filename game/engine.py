@@ -49,7 +49,7 @@ class Engine(Node):
         self.game_map.visible[:] = tcod.map.compute_fov(
             self.game_map.tiles,
             (self.player.x, self.player.y),
-            radius=8,
+            radius=0,
             algorithm=tcod.FOV_SYMMETRIC_SHADOWCAST,
         )
         # If a tile is currently "visible" it will also be marked as "explored".

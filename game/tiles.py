@@ -15,3 +15,6 @@ tile_graphics: NDArray[Any] = np.array(
     ],
     dtype=tcod.console.rgb_graphic,
 )
+
+tile_fuel: NDArray[np.int32] = np.array([8000, 24000, 0, 3000])
+fire_resist: NDArray[np.int32] = np.array([2000, 0, 0, 0])
